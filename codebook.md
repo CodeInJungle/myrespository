@@ -1,0 +1,33 @@
+# Transformation
+**STEP #1 LOAD PACKAGE** 
+**STEP #2 GET PATH**
+**STEP #3 DOWNLOAD DATA**
+**STEP #4 UNZIP**
+**STEP #5a READ SUBJECTS**
+**STEP #5b READ ACTIVITIES**
+**STEP #6 READ DATA FILES**
+**STEP #7 MERGE TRAINING AND TEST**
+**STEP #8 MERGE COLUMNS, SET KEY**
+**STEP #9 GET FEATURE NAMES**
+**STEP #10 GET MEASUREMENTS FOR MEAN AND STD**
+**STEP #11 CREATE FEATURE CODE**
+**STEP #12 GET MEASUREMENTS FOR MEAN AND STD**
+**STEP #13 CHANGE TO DESCRIPTIVE NAMES**
+**STEP #14 MERGE ACTIVITY LABELS**
+**STEP #15 SET ACTIVITY NAME AS KEY**
+**STEP #16 MELT DATA FROM SHORT AND WIDE FORMAT TO TALL AND NARROW FORMAT**
+**STEP #17 MERGE ACTIVITY NAME**
+**STEP #18 CREATE FACTOR VARIABLES**
+**STEP #19 SEPARATE FEATURES FROM FEATURE NAME**
+**STEP #20 MAKE SURE ALL POSSIBLE COMBINATIONS ARE ACCOUNTED FOR**
+**STEP #21 CREATE A TIDY DATASET**
+**STEP #22 SAVE DATA**
+
+# Variable list and descriptions
+
+Variable name |	Description
+-------- | ---
+subject	 |the subject who performed the activity for each window sample. Its range is from 1 to 30.
+activity	|Activity name
+featureName	|Feature names in data set
+mean	|Feature: Average of each variable for each activity and each subject

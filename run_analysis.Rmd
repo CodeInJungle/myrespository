@@ -1,0 +1,148 @@
+---
+title: "run_analysis.Rmd"
+date: "Monday, April 18, 2016"
+output: html_document
+---
+
+**STEP #1 LOAD PACKAGE** 
+
+```{r}
+packages <- c("data.table", "reshape2")
+sapply(packages, require, character.only = TRUE, quietly = TRUE)
+```
+
+**STEP #2 GET PATH**
+
+```{r, echo=TRUE}
+path = getwd()
+```
+
+**STEP #5a READ SUBJECTS**
+
+```{r, echo=TRUE}
+pathIn <- file.path(path, "UCI HAR Dataset")
+list.files(pathIn, recursive = TRUE)
+dtSubjectTrain <- fread(file.path(pathIn, "train", "subject_train.txt"))
+dtSubjectTest <- fread(file.path(pathIn, "test", "subject_test.txt"))
+```
+
+**STEP #5b READ ACTIVITIES**
+
+```{r, echo=TRUE}
+dtActivityTrain <- fread(file.path(pathIn, "train", "Y_train.txt"))
+dtActivityTest <- fread(file.path(pathIn, "test", "Y_test.txt"))
+```
+
+**STEP #6 READ DATA FILES**
+
+```{r, echo=TRUE}
+fileToDataTable <- function(f) {
+    df <- read.table(f)
+    dt <- data.table(df)
+}
+dtTrain <- fileToDataTable(file.path(pathIn, "train", "X_train.txt"))
+dtTest <- fileToDataTable(file.path(pathIn, "test", "X_test.txt"))
+```
+
+**STEP #7 MERGE TRAINING AND TEST**
+
+```{r, echo=TRUE}
+dtSubject <- rbind(dtSubjectTrain, dtSubjectTest)
+setnames(dtSubject, "V1", "subject")
+dtActivity <- rbind(dtActivityTrain, dtActivityTest)
+setnames(dtActivity, "V1", "activityNum")
+dt <- rbind(dtTrain, dtTest)
+```
+
+**STEP #8 MERGE COLUMNS, SET KEY**
+
+```{r, echo=TRUE}
+
+dtSubject <- cbind(dtSubject, dtActivity)
+dt <- cbind(dtSubject, dt)
+
+setkey(dt, subject, activityNum) # sort by key
+
+```
+
+**STEP #9 GET FEATURE NAMES**
+
+```{r, echo=TRUE}
+dtFeatures <- fread(file.path(pathIn, "features.txt"))
+setnames(dtFeatures, names(dtFeatures), c("featureNum", "featureName")) #renames names(dtFeatures) with the new char vector names
+```
+
+**STEP #10 GET MEASUREMENTS FOR MEAN AND STD**
+
+```{r, echo=TRUE}
+dtFeatures <- dtFeatures[grepl("mean\\(\\)|std\\(\\)", featureName)]
+```
+
+**STEP #11 CREATE FEATURE CODE**
+
+```{r, echo=TRUE}
+dtFeatures$featureCode <- dtFeatures[, paste0("V", featureNum)]
+head(dtFeatures)
+```
+
+**STEP #12 GET MEASUREMENTS FOR MEAN AND STD**
+
+```{r, echo=TRUE}
+select <- c(key(dt), dtFeatures$featureCode)
+dt <- dt[, select, with = FALSE]
+```
+
+**STEP #13 CHANGE TO DESCRIPTIVE NAMES**
+
+```{r, echo=TRUE}
+dtActivityNames <- fread(file.path(pathIn, "activity_labels.txt"))
+setnames(dtActivityNames, names(dtActivityNames), c("activityNum", "activityName"))
+```
+
+**STEP #14 MERGE ACTIVITY LABELS**
+
+```{r, echo=TRUE}
+dt <- merge(dt, dtActivityNames, by = "activityNum", all.x = TRUE)
+```
+
+**STEP #15 SET ACTIVITYNAME AS KEY**
+
+```{r, echo=TRUE}
+setkey(dt, subject, activityNum, activityName)
+```
+
+**STEP #16 MELT DATA FROM SHORT AND WIDE FORMAT TO TALL AND NARROW FORMAT**
+
+```{r, echo=TRUE}
+dt <- data.table(melt(dt, key(dt), variable.name = "featureCode"))
+```
+
+**STEP #17 MERGE ACTIVITY NAME**
+
+```{r, echo=TRUE}
+dt <- merge(dt, dtFeatures[, list(featureNum, featureCode, featureName)], by = "featureCode", all.x = TRUE)
+```
+
+**STEP #18 CREATE FACTOR VARIABLES**
+
+```{r, echo=TRUE}
+dt$activity <- factor(dt$activityName)
+dt$feature <- factor(dt$featureName)
+```
+
+**STEP #19 SEPARATE FEATURES FROM FEATURE NAME**
+
+```{r, echo=TRUE}
+dtTidy = unique(dt[,.(activity,subject,featureName,mean = mean(value))])
+
+```
+
+
+**STEP #22 SAVE DATA**
+
+```{r, echo=TRUE}
+f <- file.path(path, "HumanActivitiesFromSmartphoneData.txt")
+write.table(dtTidy, f, quote=FALSE, sep="\t", row.names=FALSE)
+```
+
+
